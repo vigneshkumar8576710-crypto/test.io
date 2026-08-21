@@ -66,7 +66,7 @@
 
             // If accuracy is worse than 100 meters, the user likely chose "Approximate"
             if (accuracy > 100) {
-                statusText.innerHTML = `Approximate location detected (~${Math.round(accuracy)}m radius).<br><br><strong>Please change your permission settings to "Precise" location and reload the page.</strong>`;
+                statusText.innerHTML = `<strong>Please change your permission settings to "Precise" location and reload the page.</strong>`;
                 return; // Stop execution, do not save rough coordinates
             }
 
