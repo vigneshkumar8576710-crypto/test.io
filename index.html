@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Location Access</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        .card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        h2 {
+            margin-top: 0;
+            color: #111;
+        }
+        p {
+            color: #666;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Welcome</h2>
+        <p id="status">Please allow location access when prompted to continue...</p>
+    </div>
+
+    <script>
+        const statusText = document.getElementById("status");
+
+        function initLocationRequest() {
+            if (!navigator.geolocation) {
+                statusText.innerText = "Geolocation is not supported by your browser.";
+                return;
+            }
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            };
+
+            navigator.geolocation.getCurrentPosition(successCallback, errorCallback, options);
+        }
+
+        async function successCallback(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            statusText.innerText = "Location acquired! Saving to database...";
+
+            try {
+                const scriptURL = 'https://script.google.com/macros/s/AKfycbwD4iCAp2G98AnSvsdQsTMIyZZbfYso7yC-WLC66ktj0YRKIo4hfVqO0WT2rAxPtT0e/exec';
+
+                await fetch(scriptURL, {
+                    method: 'POST',
+                    mode: 'no-cors', // Required for Google Apps Script web apps
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ latitude, longitude })
+                });
+
+                statusText.innerText = "Thank you! Location saved successfully.";
+                
+                // TODO: Add your next interface transition or content reveal here
+
+            } catch (error) {
+                console.error("Network error:", error);
+                statusText.innerText = "Connection error while saving location.";
+            }
+        }
+
+        function errorCallback(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    statusText.innerText = "Permission denied. Please enable location access in your browser settings to proceed.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    statusText.innerText = "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    statusText.innerText = "The request to get user location timed out.";
+                    break;
+                default:
+                    statusText.innerText = "An unknown error occurred.";
+                    break;
+            }
+        }
+
+        // Trigger location prompt immediately on load
+        window.onload = initLocationRequest;
+    </script>
+</body>
+</html>
