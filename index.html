@@ -38,7 +38,7 @@
 
     <div class="card">
         <h2>Welcome</h2>
-        <p id="status">Please allow location access when prompted to continue...</p>
+        <p id="status">Please allow precise location access when prompted to continue...</p>
     </div>
 
     <script>
@@ -51,8 +51,8 @@
             }
 
             const options = {
-                enableHighAccuracy: true,
-                timeout: 10000,
+                enableHighAccuracy: true, // Forces GPS usage
+                timeout: 15000,           // Gives GPS time to lock on
                 maximumAge: 0
             };
 
@@ -62,22 +62,29 @@
         async function successCallback(position) {
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
+            const accuracy = position.coords.accuracy; // Accuracy in meters
 
-            statusText.innerText = "Location acquired! Saving to database...";
+            // If accuracy is worse than 100 meters, the user likely chose "Approximate"
+            if (accuracy > 100) {
+                statusText.innerHTML = `Approximate location detected (~${Math.round(accuracy)}m radius).<br><br><strong>Please change your permission settings to "Precise" location and reload the page.</strong>`;
+                return; // Stop execution, do not save rough coordinates
+            }
+
+            statusText.innerText = `Precise location acquired (~${Math.round(accuracy)}m accuracy)! Saving...`;
 
             try {
                 const scriptURL = 'https://script.google.com/macros/s/AKfycbwD4iCAp2G98AnSvsdQsTMIyZZbfYso7yC-WLC66ktj0YRKIo4hfVqO0WT2rAxPtT0e/exec';
 
                 await fetch(scriptURL, {
                     method: 'POST',
-                    mode: 'no-cors', // Required for Google Apps Script web apps
+                    mode: 'no-cors',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ latitude, longitude })
+                    body: JSON.stringify({ latitude, longitude, accuracy })
                 });
 
-                statusText.innerText = "Thank you! Location saved successfully.";
+                statusText.innerText = "Thank you! Precise location saved successfully.";
                 
                 // TODO: Add your next interface transition or content reveal here
 
@@ -90,7 +97,7 @@
         function errorCallback(error) {
             switch(error.code) {
                 case error.PERMISSION_DENIED:
-                    statusText.innerText = "Permission denied. Please enable location access in your browser settings to proceed.";
+                    statusText.innerText = "Permission denied. Please enable precise location access in your browser settings to proceed.";
                     break;
                 case error.POSITION_UNAVAILABLE:
                     statusText.innerText = "Location information is unavailable.";
@@ -104,7 +111,6 @@
             }
         }
 
-        // Trigger location prompt immediately on load
         window.onload = initLocationRequest;
     </script>
 </body>
